@@ -9,6 +9,31 @@ struct Contato {
     char telefone[20];
 };
 
+
+struct ItemTabelaHash {
+    struct Contato contato;
+    int ocupado;
+};
+
+struct TabelaHash {
+    struct ItemTabelaHash tabela[TAMANHO_TABELA];
+};
+
+int hash(char* chave) {
+    int soma = 0;
+    for (int i = 0; chave[i] != '\0'; i++) {
+        soma += chave[i];
+    }
+    return soma % TAMANHO_TABELA;
+}
+
+void inicializarTabela(struct TabelaHash* tabela) {
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        tabela->tabela[i].ocupado = 0;
+    }
+}
+
+// Estrutura principal
 int main (){
     while(1){
         printf("\nMenu:\n");
