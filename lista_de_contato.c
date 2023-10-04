@@ -34,7 +34,7 @@ int hash(char* chave) {
 // Inicializa a tabela de dispersão
 void inicializarTabela(struct TabelaHash* tabela) {
     for (int i = 0; i < TAMANHO_TABELA; i++) {
-        tabela->tabela[i].ocupado = 0;
+        tabela->tabela[i].ocupado = 0; // Marca todos os slots como vazios
     }
 }
 
@@ -88,6 +88,56 @@ int editar(struct TabelaHash* tabela, char* email, char* novoNome, char* novoTel
     }
 
     return 0; // Falha na edição (caso o contato não seja encontrado)
+}
+
+// Lista todos os contatos na tabela de dispersão
+void listarContatos(struct TabelaHash* tabela) {
+    printf("Lista de Contatos:\n");
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        if (tabela->tabela[i].ocupado == 1) {
+            printf("Nome: %s, Email: %s, Telefone: %s\n", tabela->tabela[i].contato.nome, tabela->tabela[i].contato.email, tabela->tabela[i].contato.telefone);
+        }
+    }
+}
+
+// Exporta os contatos para um arquivo de texto
+void exportarContatos(struct TabelaHash* tabela, char* nomeArquivo) {
+    FILE* arquivo = fopen(nomeArquivo, "w");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir o arquivo");
+        return;
+    }
+
+    for (int i = 0; i < TAMANHO_TABELA; i++) {
+        if (tabela->tabela[i].ocupado == 1) {
+            fprintf(arquivo, "Nome: %s, Email: %s, Telefone: %s\n", tabela->tabela[i].contato.nome, tabela->tabela[i].contato.email, tabela->tabela[i].contato.telefone);
+        }
+    }
+
+    fclose(arquivo);
+}
+
+// Apaga um contato da tabela de dispersão
+int apagarContato(struct TabelaHash* tabela, char* email) {
+    int indice = hash(email);
+    int tentativas = 0;
+
+    while (tabela->tabela[indice].ocupado == 1) {
+        if (strcmp(tabela->tabela[indice].contato.email, email) == 0) {
+            tabela->tabela[indice].ocupado = 0; // Marca o slot como vazio
+            return 1; // Contato apagado com sucesso
+        }
+        indice = (indice + 1) % TAMANHO_TABELA;
+        tentativas++;
+
+        // Se tentamos encontrar o contato em todos os slots e não encontramos, ele não existe
+        if (tentativas >= TAMANHO_TABELA) {
+            printf("Contato não encontrado.\n");
+            return 0; // Falha ao apagar o contato
+        }
+    }
+
+    return 0; // Falha ao apagar o contato (caso o contato não seja encontrado)
 }
 
 // Estrutura principal
@@ -145,6 +195,36 @@ int main (){
                     }
                     break;
                 }
+            case 3:
+                listarContatos(&tabela);
+                break;
+            case 4:
+                {
+                    char nomeArquivo[50];
+                    printf("Digite o nome do arquivo para exportar os contatos: ");
+                    scanf("%s", nomeArquivo);
+                    exportarContatos(&tabela, nomeArquivo);
+                    printf("Contatos exportados com sucesso para o arquivo %s!\n", nomeArquivo);
+                    break;
+                }
+            case 5:
+                {
+                    char email[50];
+                    printf("Digite o email do contato a ser apagado: ");
+                    scanf("%s", email);
+                    if (apagarContato(&tabela, email)) {
+                        printf("Contato apagado com sucesso!\n");
+                    } else {
+                        printf("Falha ao apagar o contato.\n");
+                    }
+                    break;
+                }
+            case 6:
+                exit(0);
+            default:
+                printf("Opcao invalida!\n");
         }
     }
+
+    return 0;
 }
